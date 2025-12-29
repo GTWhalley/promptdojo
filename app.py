@@ -7,6 +7,7 @@ active A/B testing and interactive grading.
 import streamlit as st
 import json
 import random
+from datetime import datetime
 import openai
 import google.generativeai as genai
 import anthropic
@@ -249,6 +250,8 @@ def init_session_state():
         # Grade My Prompt mode
         "grade_my_prompt_result": None,
         "grade_my_prompt_graded": False,
+        # Analysis history
+        "analysis_history": [],  # List of {"prompt": str, "result": str, "score": int, "timestamp": str}
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -837,6 +840,28 @@ def render_module3():
                 result = grade_general_prompt(user_prompt)
                 st.session_state.grade_my_prompt_result = result
                 st.session_state.grade_my_prompt_graded = True
+
+                # Extract score and save to history
+                score = None
+                try:
+                    if "TOTAL:" in result:
+                        score_part = result.split("TOTAL:")[1].split("/")[0].strip()
+                        score = int(''.join(filter(str.isdigit, score_part)))
+                except:
+                    pass
+
+                # Add to history
+                history_entry = {
+                    "prompt": user_prompt[:200] + "..." if len(user_prompt) > 200 else user_prompt,
+                    "full_prompt": user_prompt,
+                    "result": result,
+                    "score": score,
+                    "timestamp": datetime.now().strftime("%H:%M:%S")
+                }
+                st.session_state.analysis_history.insert(0, history_entry)
+                # Keep only last 10 entries
+                st.session_state.analysis_history = st.session_state.analysis_history[:10]
+
             st.rerun()
 
     with col2:
@@ -916,6 +941,33 @@ def render_module3():
         # Helpful tip at the bottom
         st.divider()
         st.caption("PRO TIP: Copy the improved version above and analyze it again to verify the score increase.")
+
+    # History section
+    if st.session_state.analysis_history:
+        st.divider()
+        with st.expander(f"HISTORY ({len(st.session_state.analysis_history)} analyses)", expanded=False):
+            for i, entry in enumerate(st.session_state.analysis_history):
+                score_display = f"**{entry['score']}/20**" if entry['score'] else "N/A"
+                col1, col2, col3 = st.columns([3, 1, 1])
+
+                with col1:
+                    st.markdown(f"*{entry['timestamp']}* — {entry['prompt'][:80]}...")
+                with col2:
+                    st.markdown(score_display)
+                with col3:
+                    if st.button("VIEW", key=f"view_history_{i}", use_container_width=True):
+                        st.session_state.grade_my_prompt_result = entry['result']
+                        st.session_state.grade_my_prompt_graded = True
+                        st.rerun()
+
+                if i < len(st.session_state.analysis_history) - 1:
+                    st.markdown("---")
+
+            # Clear history button
+            st.markdown("")
+            if st.button("CLEAR HISTORY", use_container_width=True):
+                st.session_state.analysis_history = []
+                st.rerun()
 
 
 def render_lesson_selection():
