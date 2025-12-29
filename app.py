@@ -869,8 +869,8 @@ def render_module3():
             elif submitted and not user_prompt:
                 st.warning("Please enter a prompt to analyze.")
     else:
-        # Show analyze another button when graded
-        if st.button("ANALYZE ANOTHER", type="primary", use_container_width=True):
+        # Show new analysis button when graded - prominent at top
+        if st.button("🔄 NEW ANALYSIS", type="primary", use_container_width=True):
             st.session_state.grade_my_prompt_result = None
             st.session_state.grade_my_prompt_graded = False
             st.rerun()
@@ -928,8 +928,31 @@ def render_module3():
         if improved_prompt:
             st.markdown("---")
             st.markdown("#### IMPROVED VERSION")
-            st.caption("Click the copy icon in the top-right corner to copy")
-            st.code(improved_prompt, language=None)
+
+            # Store improved prompt in session state for copying
+            st.session_state.improved_prompt_text = improved_prompt
+
+            # Display in text area with word wrap
+            st.text_area(
+                "Improved prompt:",
+                value=improved_prompt,
+                height=200,
+                key="improved_prompt_display",
+                label_visibility="collapsed",
+                disabled=True
+            )
+
+            # Copy button row
+            col1, col2 = st.columns([1, 3])
+            with col1:
+                if st.button("📋 COPY", key="copy_improved", use_container_width=True):
+                    st.toast("Prompt copied! Use Ctrl+V to paste.", icon="✅")
+                    # Use JavaScript to copy to clipboard
+                    st.markdown(f'''
+                        <script>
+                            navigator.clipboard.writeText(`{improved_prompt.replace("`", "\\`").replace("$", "\\$")}`);
+                        </script>
+                    ''', unsafe_allow_html=True)
 
             # Why this works better section
             if "## Why This Works Better" in result:
@@ -1417,16 +1440,30 @@ CUSTOM_CSS = """
         color: #444 !important;
     }
 
-    /* Improved prompt display area - read-only styling */
+    /* Improved prompt display area - read-only styling with word wrap */
     .stTextArea[data-testid="stTextArea"] textarea[disabled],
+    .stTextArea[data-testid="stTextArea"] textarea:disabled,
     .stTextArea textarea:read-only {
         background-color: #1a1a2e !important;
-        border: 1px solid #0f3460 !important;
-        color: #e0e0e0 !important;
+        border: 2px solid #0f3460 !important;
+        border-radius: 8px !important;
+        color: #00d4ff !important;
         cursor: text !important;
         white-space: pre-wrap !important;
         word-wrap: break-word !important;
-        line-height: 1.5 !important;
+        overflow-wrap: break-word !important;
+        word-break: break-word !important;
+        line-height: 1.6 !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 0.95rem !important;
+        padding: 1rem !important;
+    }
+
+    /* Copy button styling */
+    button[kind="secondary"]:has(span:contains("COPY")),
+    .stButton > button:contains("COPY") {
+        background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%) !important;
+        border: 2px solid #00d4ff !important;
     }
 
     /* Radio buttons */
