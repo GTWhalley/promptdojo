@@ -538,7 +538,7 @@ def render_sidebar():
                 if st.session_state.api_validated:
                     st.session_state.api_validated = False
 
-            if st.button("Test Connection", type="primary"):
+            if st.button("Connect", type="primary"):
                 if api_key:
                     with st.spinner("Testing connection..."):
                         success, message = test_api_connection(api_key, provider)
@@ -822,51 +822,55 @@ def render_module3():
         **You'll receive:** Score breakdown • Strengths • Improvements • Optimized version
         """)
 
-    # User prompt input
-    user_prompt = st.text_area(
-        "YOUR PROMPT:",
-        height=250,
-        placeholder="Paste the prompt you want to analyze...",
-        key="grade_my_prompt_input"
-    )
+    # User prompt input with form for immediate submission
+    if not st.session_state.grade_my_prompt_graded:
+        with st.form(key="analyze_form"):
+            user_prompt = st.text_area(
+                "YOUR PROMPT:",
+                height=250,
+                placeholder="Paste the prompt you want to analyze...",
+                key="grade_my_prompt_input"
+            )
 
-    # Action buttons
-    col1, col2 = st.columns([1, 1])
+            col1, col2 = st.columns([1, 1])
+            with col1:
+                submitted = st.form_submit_button("ANALYZE", type="primary", use_container_width=True)
+            with col2:
+                st.form_submit_button("CLEAR", use_container_width=True, disabled=True)
 
-    with col1:
-        submit_disabled = not user_prompt or st.session_state.grade_my_prompt_graded
-        if st.button("ANALYZE", type="primary", disabled=submit_disabled, use_container_width=True):
-            with st.spinner("Running analysis..."):
-                result = grade_general_prompt(user_prompt)
-                st.session_state.grade_my_prompt_result = result
-                st.session_state.grade_my_prompt_graded = True
+            if submitted and user_prompt:
+                with st.spinner("Running analysis..."):
+                    result = grade_general_prompt(user_prompt)
+                    st.session_state.grade_my_prompt_result = result
+                    st.session_state.grade_my_prompt_graded = True
 
-                # Extract score and save to history
-                score = None
-                try:
-                    if "TOTAL:" in result:
-                        score_part = result.split("TOTAL:")[1].split("/")[0].strip()
-                        score = int(''.join(filter(str.isdigit, score_part)))
-                except:
-                    pass
+                    # Extract score and save to history
+                    score = None
+                    try:
+                        if "TOTAL:" in result:
+                            score_part = result.split("TOTAL:")[1].split("/")[0].strip()
+                            score = int(''.join(filter(str.isdigit, score_part)))
+                    except:
+                        pass
 
-                # Add to history
-                history_entry = {
-                    "prompt": user_prompt[:200] + "..." if len(user_prompt) > 200 else user_prompt,
-                    "full_prompt": user_prompt,
-                    "result": result,
-                    "score": score,
-                    "timestamp": datetime.now().strftime("%H:%M:%S")
-                }
-                st.session_state.analysis_history.insert(0, history_entry)
-                # Keep only last 10 entries
-                st.session_state.analysis_history = st.session_state.analysis_history[:10]
+                    # Add to history
+                    history_entry = {
+                        "prompt": user_prompt[:200] + "..." if len(user_prompt) > 200 else user_prompt,
+                        "full_prompt": user_prompt,
+                        "result": result,
+                        "score": score,
+                        "timestamp": datetime.now().strftime("%H:%M:%S")
+                    }
+                    st.session_state.analysis_history.insert(0, history_entry)
+                    # Keep only last 10 entries
+                    st.session_state.analysis_history = st.session_state.analysis_history[:10]
 
-            st.rerun()
-
-    with col2:
-        # Clear button to grade another prompt
-        if st.button("ANALYZE ANOTHER", disabled=not st.session_state.grade_my_prompt_graded, use_container_width=True):
+                st.rerun()
+            elif submitted and not user_prompt:
+                st.warning("Please enter a prompt to analyze.")
+    else:
+        # Show analyze another button when graded
+        if st.button("ANALYZE ANOTHER", type="primary", use_container_width=True):
             st.session_state.grade_my_prompt_result = None
             st.session_state.grade_my_prompt_graded = False
             st.rerun()
@@ -924,13 +928,8 @@ def render_module3():
         if improved_prompt:
             st.markdown("---")
             st.markdown("#### IMPROVED VERSION")
-            st.text_area(
-                "Improved prompt (select all and copy):",
-                value=improved_prompt,
-                height=200,
-                key="improved_prompt_display",
-                label_visibility="collapsed"
-            )
+            st.caption("Click the copy icon in the top-right corner to copy")
+            st.code(improved_prompt, language=None)
 
             # Why this works better section
             if "## Why This Works Better" in result:
@@ -940,7 +939,7 @@ def render_module3():
 
         # Helpful tip at the bottom
         st.divider()
-        st.caption("PRO TIP: Copy the improved version above and analyze it again to verify the score increase.")
+        st.caption("PRO TIP: Copy the improved version and analyze it again to verify the score increase.")
 
     # History section
     if st.session_state.analysis_history:
@@ -1067,7 +1066,7 @@ def render_main_content():
             <div class="quick-start-steps">
                 <span class="step">1</span> Select your API provider in the sidebar
                 <span class="step">2</span> Enter your API key
-                <span class="step">3</span> Hit "Test Connection"
+                <span class="step">3</span> Hit "Connect"
             </div>
             <div class="quick-start-note">No API key? Enable Demo Mode to try it out.</div>
         </div>
