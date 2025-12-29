@@ -1007,14 +1007,21 @@ CUSTOM_CSS = """
         color-scheme: dark !important;
     }
 
+    /* Global font */
     html, body, [class*="css"] {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        background-color: #0a0a0f !important;
-        color: #e0e0e0 !important;
     }
 
-    /* Force dark on main app container */
-    .stApp, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
+    /* Force dark backgrounds on main containers */
+    .stApp {
+        background-color: #0a0a0f !important;
+    }
+
+    [data-testid="stAppViewContainer"] {
+        background-color: #0a0a0f !important;
+    }
+
+    [data-testid="stHeader"] {
         background-color: #0a0a0f !important;
     }
 
@@ -1022,8 +1029,13 @@ CUSTOM_CSS = """
         background-color: #0a0a0f !important;
     }
 
-    /* Force dark on all text elements */
-    p, span, div, label {
+    /* Main content text - be specific to avoid breaking buttons */
+    .main p, .main span:not([class*="st"]), .main label {
+        color: #e0e0e0 !important;
+    }
+
+    /* Markdown text */
+    .stMarkdown, .stMarkdown p, .stMarkdown span, .stMarkdown li {
         color: #e0e0e0 !important;
     }
 
@@ -1221,7 +1233,9 @@ CUSTOM_CSS = """
     }
 
     /* Primary buttons */
-    .stButton > button[kind="primary"] {
+    .stButton > button[kind="primary"],
+    .stButton > button[kind="primary"] p,
+    .stButton > button[kind="primary"] span {
         background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%) !important;
         color: #0a0a0f !important;
         border: none !important;
@@ -1232,6 +1246,14 @@ CUSTOM_CSS = """
         transition: all 0.3s ease !important;
         text-transform: uppercase !important;
         font-size: 0.85rem !important;
+    }
+
+    /* Ensure button text is dark */
+    .stButton > button[kind="primary"] p,
+    .stButton > button[kind="primary"] span,
+    .stButton > button[kind="primary"] div {
+        color: #0a0a0f !important;
+        background: transparent !important;
     }
 
     .stButton > button[kind="primary"]:hover {
@@ -1253,6 +1275,14 @@ CUSTOM_CSS = """
         transition: all 0.3s ease !important;
         text-transform: uppercase !important;
         font-size: 0.85rem !important;
+    }
+
+    /* Secondary button text */
+    .stButton > button[kind="secondary"] p,
+    .stButton > button[kind="secondary"] span,
+    .stButton > button:not([kind="primary"]) p,
+    .stButton > button:not([kind="primary"]) span {
+        color: #00d4ff !important;
     }
 
     .stButton > button[kind="secondary"]:hover,
