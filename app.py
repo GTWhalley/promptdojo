@@ -98,6 +98,43 @@ Respond in this EXACT format:
 ## Why This Works Better
 Explain in 2-3 sentences why the ideal prompt would produce better results from an LLM. Focus on how LLMs process instructions and why specificity matters."""
 
+# System prompt for grading user's own general prompts (no scenario context)
+GENERAL_GRADING_SYSTEM_PROMPT = """You are a strict but encouraging Prompt Engineering Instructor. A user has submitted their own prompt for evaluation before using it. Grade this prompt based on these 4 metrics, each scored 1-5:
+
+1. **CLARITY (1-5)**: Is the intent immediately clear? Is there any ambiguity about what the AI should do?
+2. **SPECIFICITY (1-5)**: Does it provide enough detail? Are there concrete requirements, not vague requests?
+3. **CONSTRAINTS (1-5)**: Are there appropriate boundaries? (format, length, tone, scope, edge cases)
+4. **CONTEXT (1-5)**: Does it give the AI enough background? Role assignment, audience, purpose?
+
+Respond in this EXACT format:
+
+## Scores
+
+| Metric | Score | Notes |
+|--------|-------|-------|
+| Clarity | X/5 | Brief note |
+| Specificity | X/5 | Brief note |
+| Constraints | X/5 | Brief note |
+| Context | X/5 | Brief note |
+
+**TOTAL: XX/20**
+
+## What You Did Well
+- Point 1
+- Point 2
+
+## Areas for Improvement
+- Point 1 with specific suggestion
+- Point 2 with specific suggestion
+
+## Improved Version
+```
+[Write out an improved version of their prompt that addresses the issues you identified]
+```
+
+## Why This Works Better
+Explain in 2-3 sentences why the improved prompt would produce better results from an LLM. Focus on how LLMs process instructions and why specificity matters."""
+
 DEMO_AB_QUESTION = {
     "scenario": "You need to write a prompt that helps summarize technical documentation for a general audience.",
     "weak_prompt": "Summarize this technical documentation in simple terms. Make it exactly 5 paragraphs long. Use bullet points for each section. Include all technical specifications. Target audience is general public. Remove all jargon. Keep the technical accuracy. Make it engaging and fun to read.",
@@ -143,6 +180,46 @@ LLMs perform best when given explicit structure and constraints. The ideal promp
 ---
 *In the full release, this would be a real-time evaluation from an AI model using your API key.*"""
 
+DEMO_GENERAL_GRADING_RESULT = """## Scores
+
+| Metric | Score | Notes |
+|--------|-------|-------|
+| Clarity | 3/5 | Intent is understandable but could be more precise |
+| Specificity | 3/5 | Lacks concrete details about requirements |
+| Constraints | 2/5 | Missing format, length, and scope boundaries |
+| Context | 3/5 | Some background but missing role and audience |
+
+**TOTAL: 11/20**
+
+## What You Did Well
+- You have a clear main objective
+- The prompt addresses a real task
+
+## Areas for Improvement
+- Add a specific role or persona for the AI to adopt (e.g., "You are an expert...")
+- Include format constraints (length, structure, style)
+- Specify the target audience and tone
+- Add concrete examples or edge cases to handle
+
+## Improved Version
+```
+You are an expert [role]. I need you to [specific task].
+
+Requirements:
+- Output format: [specify format]
+- Length: [specify length]
+- Tone: [specify tone]
+- Target audience: [specify audience]
+
+Please ensure you [additional constraints or considerations].
+```
+
+## Why This Works Better
+The improved prompt provides explicit structure that guides the LLM's response. By specifying role, format, length, and audience, you eliminate ambiguity and ensure the AI understands exactly what output you need. LLMs perform best when they have clear boundaries and concrete requirements rather than open-ended requests.
+
+---
+*In the full release, this would be a real-time evaluation from an AI model using your API key.*"""
+
 
 # =============================================================================
 # Session State Initialization
@@ -168,6 +245,9 @@ def init_session_state():
         "challenge_result": None,
         "challenge_graded": False,
         "gemini_model": None,
+        # Grade My Prompt mode
+        "grade_my_prompt_result": None,
+        "grade_my_prompt_graded": False,
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -292,6 +372,20 @@ Grade this prompt according to your rubric."""
     return call_llm(grading_request, GRADING_SYSTEM_PROMPT)
 
 
+def grade_general_prompt(user_prompt: str) -> str:
+    """Grade a user's own prompt without a specific scenario context."""
+    if st.session_state.demo_mode:
+        return DEMO_GENERAL_GRADING_RESULT
+
+    grading_request = f"""The user has submitted the following prompt for evaluation:
+
+"{user_prompt}"
+
+Grade this prompt according to your rubric. Provide specific, actionable feedback and an improved version."""
+
+    return call_llm(grading_request, GENERAL_GRADING_SYSTEM_PROMPT)
+
+
 # =============================================================================
 # Quiz Logic
 # =============================================================================
@@ -396,7 +490,12 @@ def render_sidebar():
         # Show current lesson and option to change
         if st.session_state.lesson_selected:
             st.subheader("Current Lesson")
-            lesson_name = "Compare Prompts" if st.session_state.lesson_selected == "compare" else "Test Your Skills"
+            lesson_names = {
+                "compare": "Compare Prompts",
+                "challenge": "Test Your Skills",
+                "grade": "Grade My Prompt"
+            }
+            lesson_name = lesson_names.get(st.session_state.lesson_selected, "Unknown")
             st.write(f"**{lesson_name}**")
 
             if st.button("Change Lesson"):
@@ -405,6 +504,8 @@ def render_sidebar():
                 st.session_state.challenge_scenario = None
                 st.session_state.challenge_result = None
                 st.session_state.challenge_graded = False
+                st.session_state.grade_my_prompt_result = None
+                st.session_state.grade_my_prompt_graded = False
                 st.rerun()
 
             st.divider()
@@ -617,12 +718,97 @@ def render_module2():
         st.markdown(result)
 
 
+def render_module3():
+    """Render the Grade My Prompt module for testing user's own prompts."""
+    st.header("Grade My Prompt")
+    st.write("Paste any prompt you're planning to use and get detailed feedback before you use it.")
+
+    if not st.session_state.api_validated:
+        st.warning("Please validate your API key in the sidebar to use this module.")
+        return
+
+    if st.session_state.demo_mode:
+        st.info("**Demo Mode**: Submit any prompt to see sample grading feedback.")
+
+    # Information about the grading
+    with st.expander("How does grading work?"):
+        st.markdown("""
+        Your prompt will be evaluated on **4 key metrics** (each scored 1-5):
+
+        1. **Clarity** - Is the intent immediately clear? Is there any ambiguity?
+        2. **Specificity** - Does it provide enough detail? Are there concrete requirements?
+        3. **Constraints** - Are there appropriate boundaries? (format, length, tone, scope)
+        4. **Context** - Does it give enough background? (role, audience, purpose)
+
+        You'll receive:
+        - A detailed score breakdown
+        - What you did well
+        - Areas for improvement
+        - An improved version of your prompt
+        """)
+
+    # User prompt input
+    user_prompt = st.text_area(
+        "Paste your prompt here:",
+        height=250,
+        placeholder="Enter the prompt you want to evaluate...\n\nFor example:\n'Write me a blog post about AI'",
+        key="grade_my_prompt_input"
+    )
+
+    # Action buttons
+    col1, col2 = st.columns([1, 1])
+
+    with col1:
+        submit_disabled = not user_prompt or st.session_state.grade_my_prompt_graded
+        if st.button("Grade My Prompt", type="primary", disabled=submit_disabled, use_container_width=True):
+            with st.spinner("Analyzing your prompt..."):
+                result = grade_general_prompt(user_prompt)
+                st.session_state.grade_my_prompt_result = result
+                st.session_state.grade_my_prompt_graded = True
+            st.rerun()
+
+    with col2:
+        # Clear button to grade another prompt
+        if st.button("Grade Another Prompt", disabled=not st.session_state.grade_my_prompt_graded, use_container_width=True):
+            st.session_state.grade_my_prompt_result = None
+            st.session_state.grade_my_prompt_graded = False
+            st.rerun()
+
+    # Display grading result
+    if st.session_state.grade_my_prompt_result:
+        st.divider()
+        st.subheader("Grading Result")
+
+        result = st.session_state.grade_my_prompt_result
+
+        # Try to extract score for color coding
+        try:
+            if "TOTAL:" in result:
+                score_part = result.split("TOTAL:")[1].split("/")[0].strip()
+                score = int(''.join(filter(str.isdigit, score_part)))
+
+                if score >= 16:
+                    st.success(f"**Score: {score}/20** - Excellent! Your prompt is well-crafted.")
+                elif score >= 12:
+                    st.info(f"**Score: {score}/20** - Good start! See suggestions below to improve.")
+                else:
+                    st.warning(f"**Score: {score}/20** - Consider the improvements below before using this prompt.")
+        except:
+            pass
+
+        st.markdown(result)
+
+        # Helpful tip at the bottom
+        st.divider()
+        st.caption("Tip: Copy the improved version and paste it back above to see if your score improves!")
+
+
 def render_lesson_selection():
     """Render the lesson selection screen."""
     st.markdown("### Choose Your Training Mode")
     st.write("Select how you want to practice prompt engineering today:")
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
 
     with col1:
         st.markdown("#### Compare Prompts")
@@ -640,6 +826,14 @@ def render_lesson_selection():
             st.session_state.lesson_selected = "challenge"
             st.rerun()
 
+    with col3:
+        st.markdown("#### Grade My Prompt")
+        st.write("Paste any prompt you're planning to use and get detailed feedback before using it.")
+        st.caption("Best for: Testing real prompts before you use them")
+        if st.button("Grade a Prompt", type="primary", use_container_width=True, key="select_grade"):
+            st.session_state.lesson_selected = "grade"
+            st.rerun()
+
 
 def render_main_content():
     """Render the main content area with tabs."""
@@ -652,6 +846,7 @@ def render_main_content():
 
         1. **Compare Prompts** - Learn to identify effective prompts through A/B testing
         2. **Test Your Skills** - Write your own prompts and receive AI-powered feedback
+        3. **Grade My Prompt** - Test your real prompts before using them and get improvement suggestions
 
         To get started:
         1. Select your API provider (OpenAI or Gemini)
@@ -670,8 +865,10 @@ def render_main_content():
     # Render the selected lesson
     if st.session_state.lesson_selected == "compare":
         render_module1()
-    else:  # challenge
+    elif st.session_state.lesson_selected == "challenge":
         render_module2()
+    elif st.session_state.lesson_selected == "grade":
+        render_module3()
 
 
 # =============================================================================
