@@ -5,6 +5,7 @@ active A/B testing and interactive grading.
 """
 
 import streamlit as st
+import streamlit.components.v1 as components
 import json
 import random
 from datetime import datetime
@@ -942,17 +943,44 @@ def render_module3():
                 disabled=True
             )
 
-            # Copy button row
+            # Copy button using components.html for working clipboard
             col1, col2 = st.columns([1, 3])
             with col1:
-                if st.button("📋 COPY", key="copy_improved", use_container_width=True):
-                    st.toast("Prompt copied! Use Ctrl+V to paste.", icon="✅")
-                    # Use JavaScript to copy to clipboard
-                    st.markdown(f'''
-                        <script>
-                            navigator.clipboard.writeText(`{improved_prompt.replace("`", "\\`").replace("$", "\\$")}`);
-                        </script>
-                    ''', unsafe_allow_html=True)
+                # Escape the prompt for JavaScript
+                escaped_prompt = improved_prompt.replace("\\", "\\\\").replace("`", "\\`").replace("$", "\\$").replace("'", "\\'").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r")
+
+                # Create a copy button using HTML/JS that actually works
+                copy_button_html = f'''
+                <button onclick="copyToClipboard()" style="
+                    background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
+                    border: 2px solid #00d4ff;
+                    border-radius: 8px;
+                    color: #00d4ff;
+                    padding: 0.6rem 1.5rem;
+                    font-weight: 600;
+                    font-size: 0.85rem;
+                    cursor: pointer;
+                    width: 100%;
+                    text-transform: uppercase;
+                    letter-spacing: 0.02em;
+                    transition: all 0.3s ease;
+                " onmouseover="this.style.background='rgba(0, 212, 255, 0.2)'" onmouseout="this.style.background='linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%)'">
+                    📋 COPY
+                </button>
+                <span id="copyStatus" style="color: #00c896; font-size: 0.8rem; margin-left: 10px; display: none;">✓ Copied!</span>
+                <script>
+                function copyToClipboard() {{
+                    const text = `{escaped_prompt}`;
+                    navigator.clipboard.writeText(text).then(function() {{
+                        document.getElementById('copyStatus').style.display = 'inline';
+                        setTimeout(function() {{
+                            document.getElementById('copyStatus').style.display = 'none';
+                        }}, 2000);
+                    }});
+                }}
+                </script>
+                '''
+                components.html(copy_button_html, height=50)
 
             # Why this works better section
             if "## Why This Works Better" in result:
