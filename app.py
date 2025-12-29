@@ -441,7 +441,13 @@ def render_sidebar():
             index=0 if st.session_state.api_provider == "OpenAI" else 1,
             disabled=st.session_state.demo_mode
         )
-        st.session_state.api_provider = provider
+        # If provider changed, invalidate the API connection (different key needed)
+        if provider != st.session_state.api_provider:
+            st.session_state.api_provider = provider
+            st.session_state.api_validated = False
+            st.session_state.api_key = ""  # Clear key when switching providers
+        else:
+            st.session_state.api_provider = provider
 
         demo_mode = st.checkbox(
             "Demo Mode (No API Key Required)",
@@ -463,7 +469,13 @@ def render_sidebar():
                 value=st.session_state.api_key,
                 help="Your API key is stored in memory only and never saved to disk."
             )
-            st.session_state.api_key = api_key
+
+            # Only update if the key changed (prevents losing validation on rerun)
+            if api_key != st.session_state.api_key:
+                st.session_state.api_key = api_key
+                # Invalidate if key changed
+                if st.session_state.api_validated:
+                    st.session_state.api_validated = False
 
             if st.button("Test Connection", type="primary"):
                 if api_key:
@@ -472,6 +484,7 @@ def render_sidebar():
                         if success:
                             st.success(message)
                             st.session_state.api_validated = True
+                            st.session_state.api_key = api_key  # Ensure key is saved
                         else:
                             st.error(message)
                             st.session_state.api_validated = False
