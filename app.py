@@ -433,7 +433,7 @@ def reset_quiz():
 def render_sidebar():
     """Render the settings sidebar."""
     with st.sidebar:
-        st.header("Settings")
+        st.markdown("### SETTINGS")
 
         provider = st.radio(
             "Select API Provider:",
@@ -502,16 +502,16 @@ def render_sidebar():
 
         # Show current lesson and option to change
         if st.session_state.lesson_selected:
-            st.subheader("Current Lesson")
+            st.markdown("#### ACTIVE MODE")
             lesson_names = {
-                "compare": "Compare Prompts",
-                "challenge": "Test Your Skills",
-                "grade": "Grade My Prompt"
+                "compare": "COMPARE",
+                "challenge": "CHALLENGE",
+                "grade": "ANALYZE"
             }
-            lesson_name = lesson_names.get(st.session_state.lesson_selected, "Unknown")
+            lesson_name = lesson_names.get(st.session_state.lesson_selected, "UNKNOWN")
             st.write(f"**{lesson_name}**")
 
-            if st.button("Change Lesson"):
+            if st.button("SWITCH MODE"):
                 reset_quiz()
                 st.session_state.lesson_selected = None
                 st.session_state.challenge_scenario = None
@@ -525,20 +525,20 @@ def render_sidebar():
 
         # Progress section - only show for compare mode
         if st.session_state.lesson_selected == "compare":
-            st.subheader("Progress")
-            st.write(f"Quiz Score: {st.session_state.quiz_score}/{QUIZ_LENGTH}")
-            st.write(f"Questions Completed: {st.session_state.quiz_index}/{QUIZ_LENGTH}")
+            st.markdown("#### PROGRESS")
+            st.write(f"**Score:** {st.session_state.quiz_score}/{QUIZ_LENGTH}")
+            st.write(f"**Completed:** {st.session_state.quiz_index}/{QUIZ_LENGTH}")
 
             if st.session_state.quiz_index > 0 or st.session_state.current_question:
-                if st.button("Reset Progress"):
+                if st.button("RESET"):
                     reset_quiz()
                     st.rerun()
 
 
 def render_module1():
     """Render the A/B Testing (Discriminator) module."""
-    st.header("Compare Prompts")
-    st.write("Identify the better prompt - but be careful, the differences are subtle!")
+    st.header("COMPARE MODE")
+    st.write("Identify the superior prompt. The differences are subtle — stay sharp.")
 
     # Progress bar
     progress = st.session_state.quiz_index / QUIZ_LENGTH
@@ -547,31 +547,31 @@ def render_module1():
     # Check if quiz is complete
     if st.session_state.quiz_index >= QUIZ_LENGTH:
         st.balloons()
-        st.success(f"Congratulations! You completed the quiz!")
-        st.write(f"**Final Score: {st.session_state.quiz_score}/{QUIZ_LENGTH}**")
+        st.success(f"TRAINING COMPLETE")
+        st.write(f"**FINAL SCORE: {st.session_state.quiz_score}/{QUIZ_LENGTH}**")
 
         if st.session_state.quiz_score >= 7:
-            st.success("Excellent work! You've demonstrated strong prompt discrimination skills.")
+            st.success("Strong performance. You've got a sharp eye for effective prompts.")
         elif st.session_state.quiz_score >= 5:
-            st.info("Good effort! Consider reviewing the explanations to improve further.")
+            st.info("Solid foundation. Review the explanations to sharpen your skills further.")
         else:
-            st.warning("Keep practicing! Review the explanations to understand what makes a prompt effective.")
+            st.warning("Keep training. Study the explanations to understand what makes prompts effective.")
 
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("Retake Quiz", use_container_width=True):
+            if st.button("RETAKE", use_container_width=True):
                 reset_quiz()
                 st.rerun()
         with col2:
-            if st.button("Try Challenge Mode", type="primary", use_container_width=True):
+            if st.button("TRY CHALLENGE MODE", type="primary", use_container_width=True):
                 st.session_state.lesson_selected = "challenge"
                 st.rerun()
         return
 
     # Generate new question button
     if st.session_state.current_question is None:
-        st.info("Click the button below to generate a new comparison question.")
-        if st.button("Generate Question", type="primary", use_container_width=True):
+        st.info("Ready to test your skills? Generate a new comparison.")
+        if st.button("GENERATE QUESTION", type="primary", use_container_width=True):
             with st.spinner("Generating question..."):
                 question = generate_ab_question()
                 st.session_state.current_question = question
@@ -584,7 +584,7 @@ def render_module1():
     question = st.session_state.current_question
     correct_side = st.session_state.correct_side
 
-    st.subheader("Scenario")
+    st.subheader("SCENARIO")
     st.info(question["scenario"])
 
     # Assign prompts to sides based on randomization
@@ -599,62 +599,62 @@ def render_module1():
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("Option A")
+        st.subheader("OPTION A")
         st.text_area("", value=option_a, height=150, disabled=True, key="option_a_display", label_visibility="collapsed")
 
     with col2:
-        st.subheader("Option B")
+        st.subheader("OPTION B")
         st.text_area("", value=option_b, height=150, disabled=True, key="option_b_display", label_visibility="collapsed")
 
     # Answer buttons or feedback
     if not st.session_state.show_feedback:
-        st.write("**Which prompt is better?**")
+        st.write("**Which prompt will get better results?**")
         col1, col2 = st.columns(2)
 
         with col1:
-            if st.button("Choose Option A", use_container_width=True):
+            if st.button("SELECT A", use_container_width=True):
                 handle_answer("A")
                 st.rerun()
 
         with col2:
-            if st.button("Choose Option B", use_container_width=True):
+            if st.button("SELECT B", use_container_width=True):
                 handle_answer("B")
                 st.rerun()
     else:
         # Show feedback
         if st.session_state.last_choice_correct:
-            st.success("Correct!")
+            st.success("CORRECT — Nice work.")
         else:
-            st.error("Incorrect")
+            st.error("INCORRECT — Study the explanation below.")
 
-        st.subheader("Why?")
+        st.subheader("ANALYSIS")
         st.write(st.session_state.last_explanation)
 
         # Show which was the better prompt
-        st.subheader("The Better Prompt Was:")
+        st.subheader("THE SUPERIOR PROMPT:")
         st.code(question["strong_prompt"], language=None)
 
-        if st.button("Next Question", type="primary"):
+        if st.button("NEXT QUESTION", type="primary"):
             advance_quiz()
             st.rerun()
 
 
 def render_module2():
     """Render the Active Grading (Generator) module."""
-    st.header("Test Your Skills")
-    st.write("Write prompts for challenging scenarios and get detailed AI feedback.")
+    st.header("CHALLENGE MODE")
+    st.write("Write prompts for real-world scenarios. Get scored. Get better.")
 
     if not st.session_state.api_validated:
         st.warning("Please validate your API key in the sidebar to use this module.")
         return
 
     if st.session_state.demo_mode:
-        st.info("**Demo Mode**: Generate a challenge and submit any prompt to see sample grading.")
+        st.info("**Demo Mode** — Generate a challenge and submit any prompt to see sample grading.")
 
     # Generate challenge button
     if st.session_state.challenge_scenario is None:
-        st.info("Click the button below to generate a new challenge scenario.")
-        if st.button("Generate Challenge", type="primary", use_container_width=True):
+        st.info("Ready when you are. Generate your challenge below.")
+        if st.button("GENERATE CHALLENGE", type="primary", use_container_width=True):
             with st.spinner("Generating challenge..."):
                 challenge = generate_challenge()
                 st.session_state.challenge_scenario = challenge
@@ -666,19 +666,19 @@ def render_module2():
     # Display the challenge
     challenge = st.session_state.challenge_scenario
 
-    st.subheader(f"Challenge: {challenge['title']}")
+    st.subheader(f"CHALLENGE: {challenge['title'].upper()}")
     st.info(challenge["scenario"])
 
     # Show key elements to consider
-    with st.expander("Hint: Key Elements to Consider"):
+    with st.expander("HINT: KEY ELEMENTS TO CONSIDER"):
         for i, element in enumerate(challenge.get("key_elements", []), 1):
             st.write(f"{i}. {element}")
 
     # User prompt input
     user_prompt = st.text_area(
-        "Write your prompt:",
+        "YOUR PROMPT:",
         height=200,
-        placeholder="Enter your carefully crafted prompt here...",
+        placeholder="Write your prompt here...",
         key="user_prompt_input"
     )
 
@@ -687,8 +687,8 @@ def render_module2():
 
     with col1:
         submit_disabled = not user_prompt or st.session_state.challenge_graded
-        if st.button("Submit for Grading", type="primary", disabled=submit_disabled, use_container_width=True):
-            with st.spinner("Grading your prompt..."):
+        if st.button("SUBMIT FOR GRADING", type="primary", disabled=submit_disabled, use_container_width=True):
+            with st.spinner("Analyzing your prompt..."):
                 result = grade_prompt(user_prompt, challenge["scenario"])
                 st.session_state.challenge_result = result
                 st.session_state.challenge_graded = True
@@ -697,19 +697,19 @@ def render_module2():
     with col2:
         # Next challenge button - only enabled after grading
         next_disabled = not st.session_state.challenge_graded
-        if st.button("Next Challenge", disabled=next_disabled, use_container_width=True):
+        if st.button("NEXT CHALLENGE", disabled=next_disabled, use_container_width=True):
             st.session_state.challenge_scenario = None
             st.session_state.challenge_result = None
             st.session_state.challenge_graded = False
             st.rerun()
 
     if not st.session_state.challenge_graded:
-        st.caption("You must submit your prompt for grading before moving to the next challenge.")
+        st.caption("Submit your prompt for grading before moving to the next challenge.")
 
     # Display grading result
     if st.session_state.challenge_result:
         st.divider()
-        st.subheader("Grading Result")
+        st.subheader("RESULTS")
 
         result = st.session_state.challenge_result
 
@@ -733,38 +733,39 @@ def render_module2():
 
 def render_module3():
     """Render the Grade My Prompt module for testing user's own prompts."""
-    st.header("Grade My Prompt")
-    st.write("Paste any prompt you're planning to use and get detailed feedback before you use it.")
+    st.header("ANALYZE MODE")
+    st.write("Paste any prompt. Get a detailed breakdown. Deploy with confidence.")
 
     if not st.session_state.api_validated:
         st.warning("Please validate your API key in the sidebar to use this module.")
         return
 
     if st.session_state.demo_mode:
-        st.info("**Demo Mode**: Submit any prompt to see sample grading feedback.")
+        st.info("**Demo Mode** — Submit any prompt to see sample analysis.")
 
     # Information about the grading
-    with st.expander("How does grading work?"):
+    with st.expander("HOW SCORING WORKS"):
         st.markdown("""
-        Your prompt will be evaluated on **4 key metrics** (each scored 1-5):
+        Your prompt is evaluated on **4 key metrics** (each scored 1-5):
 
-        1. **Clarity** - Is the intent immediately clear? Is there any ambiguity?
-        2. **Specificity** - Does it provide enough detail? Are there concrete requirements?
-        3. **Constraints** - Are there appropriate boundaries? (format, length, tone, scope)
-        4. **Context** - Does it give enough background? (role, audience, purpose)
+        **CLARITY** — Is the intent immediately clear? Any ambiguity?
 
-        You'll receive:
-        - A detailed score breakdown
-        - What you did well
-        - Areas for improvement
-        - An improved version of your prompt
+        **SPECIFICITY** — Enough detail? Concrete requirements?
+
+        **CONSTRAINTS** — Appropriate boundaries? (format, length, tone, scope)
+
+        **CONTEXT** — Enough background? (role, audience, purpose)
+
+        ---
+
+        **You'll receive:** Score breakdown • Strengths • Improvements • Optimized version
         """)
 
     # User prompt input
     user_prompt = st.text_area(
-        "Paste your prompt here:",
+        "YOUR PROMPT:",
         height=250,
-        placeholder="Enter the prompt you want to evaluate...\n\nFor example:\n'Write me a blog post about AI'",
+        placeholder="Paste the prompt you want to analyze...",
         key="grade_my_prompt_input"
     )
 
@@ -773,8 +774,8 @@ def render_module3():
 
     with col1:
         submit_disabled = not user_prompt or st.session_state.grade_my_prompt_graded
-        if st.button("Grade My Prompt", type="primary", disabled=submit_disabled, use_container_width=True):
-            with st.spinner("Analyzing your prompt..."):
+        if st.button("ANALYZE", type="primary", disabled=submit_disabled, use_container_width=True):
+            with st.spinner("Running analysis..."):
                 result = grade_general_prompt(user_prompt)
                 st.session_state.grade_my_prompt_result = result
                 st.session_state.grade_my_prompt_graded = True
@@ -782,7 +783,7 @@ def render_module3():
 
     with col2:
         # Clear button to grade another prompt
-        if st.button("Grade Another Prompt", disabled=not st.session_state.grade_my_prompt_graded, use_container_width=True):
+        if st.button("ANALYZE ANOTHER", disabled=not st.session_state.grade_my_prompt_graded, use_container_width=True):
             st.session_state.grade_my_prompt_result = None
             st.session_state.grade_my_prompt_graded = False
             st.rerun()
@@ -790,7 +791,7 @@ def render_module3():
     # Display grading result
     if st.session_state.grade_my_prompt_result:
         st.divider()
-        st.subheader("Grading Result")
+        st.subheader("ANALYSIS RESULTS")
 
         result = st.session_state.grade_my_prompt_result
 
@@ -801,11 +802,11 @@ def render_module3():
                 score = int(''.join(filter(str.isdigit, score_part)))
 
                 if score >= 16:
-                    st.success(f"**Score: {score}/20** - Excellent! Your prompt is well-crafted.")
+                    st.success(f"**SCORE: {score}/20** — Excellent. Ready to deploy.")
                 elif score >= 12:
-                    st.info(f"**Score: {score}/20** - Good start! See suggestions below to improve.")
+                    st.info(f"**SCORE: {score}/20** — Good foundation. See improvements below.")
                 else:
-                    st.warning(f"**Score: {score}/20** - Consider the improvements below before using this prompt.")
+                    st.warning(f"**SCORE: {score}/20** — Needs work. Review the suggestions below.")
         except:
             pass
 
@@ -813,37 +814,40 @@ def render_module3():
 
         # Helpful tip at the bottom
         st.divider()
-        st.caption("Tip: Copy the improved version and paste it back above to see if your score improves!")
+        st.caption("PRO TIP: Copy the improved version and analyze it again to verify the score increase.")
 
 
 def render_lesson_selection():
     """Render the lesson selection screen."""
-    st.markdown("### Choose Your Training Mode")
-    st.write("Select how you want to practice prompt engineering today:")
+    st.markdown("### SELECT YOUR TRAINING MODE")
+    st.write("")
 
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.markdown("#### Compare Prompts")
-        st.write("Learn by comparing two prompts side-by-side and identifying which one is better crafted.")
-        st.caption("Best for: Beginners learning to recognize good prompts")
-        if st.button("Start Comparing", type="primary", use_container_width=True, key="select_compare"):
+        st.markdown("#### COMPARE")
+        st.markdown("**Spot the difference.** Analyze two prompts side-by-side and identify which one will get better results.")
+        st.caption("DIFFICULTY: BEGINNER")
+        st.write("")
+        if st.button("START TRAINING", type="primary", use_container_width=True, key="select_compare"):
             st.session_state.lesson_selected = "compare"
             st.rerun()
 
     with col2:
-        st.markdown("#### Test Your Skills")
-        st.write("Write your own prompts for challenging scenarios and get detailed AI feedback.")
-        st.caption("Best for: Practicing and improving your prompt writing")
-        if st.button("Start Challenge", type="primary", use_container_width=True, key="select_challenge"):
+        st.markdown("#### CHALLENGE")
+        st.markdown("**Prove yourself.** Write prompts for real-world scenarios and get graded by AI.")
+        st.caption("DIFFICULTY: INTERMEDIATE")
+        st.write("")
+        if st.button("ACCEPT CHALLENGE", type="primary", use_container_width=True, key="select_challenge"):
             st.session_state.lesson_selected = "challenge"
             st.rerun()
 
     with col3:
-        st.markdown("#### Grade My Prompt")
-        st.write("Paste any prompt you're planning to use and get detailed feedback before using it.")
-        st.caption("Best for: Testing real prompts before you use them")
-        if st.button("Grade a Prompt", type="primary", use_container_width=True, key="select_grade"):
+        st.markdown("#### ANALYZE")
+        st.markdown("**Test before you deploy.** Paste any prompt and get a detailed breakdown before using it.")
+        st.caption("DIFFICULTY: ALL LEVELS")
+        st.write("")
+        if st.button("ANALYZE PROMPT", type="primary", use_container_width=True, key="select_grade"):
             st.session_state.lesson_selected = "grade"
             st.rerun()
 
@@ -851,22 +855,26 @@ def render_lesson_selection():
 def render_main_content():
     """Render the main content area with tabs."""
     if not st.session_state.api_validated:
-        st.warning("Please enter and validate your API key in the sidebar to begin training.")
+        st.warning("Connect your API to begin training.")
         st.markdown("""
-        ### Welcome to Prompt Dojo!
+        ### LEVEL UP YOUR PROMPT GAME
 
-        This application will train you in the art of prompt engineering through:
+        Stop getting mediocre AI responses. Master the craft of prompt engineering through:
 
-        1. **Compare Prompts** - Learn to identify effective prompts through A/B testing
-        2. **Test Your Skills** - Write your own prompts and receive AI-powered feedback
-        3. **Grade My Prompt** - Test your real prompts before using them and get improvement suggestions
+        **COMPARE** — Train your eye to spot the difference between good and bad prompts
 
-        To get started:
-        1. Select your API provider (OpenAI or Gemini)
+        **CHALLENGE** — Write prompts under pressure and get scored on your performance
+
+        **ANALYZE** — Test any prompt before you use it and get actionable improvements
+
+        ---
+
+        **QUICK START:**
+        1. Select your API provider in the sidebar
         2. Enter your API key
-        3. Click "Test Connection"
+        3. Hit "Test Connection"
 
-        Or check "Demo Mode" to try without an API key!
+        *No API key? Enable Demo Mode to try it out.*
         """)
         return
 
@@ -885,6 +893,371 @@ def render_main_content():
 
 
 # =============================================================================
+# Custom Styling
+# =============================================================================
+
+CUSTOM_CSS = """
+<style>
+    /* Import sharp, modern font */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    /* Global font and background */
+    html, body, [class*="css"] {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    /* Main container styling */
+    .main .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        max-width: 1200px;
+    }
+
+    /* Header styling */
+    h1 {
+        font-weight: 800 !important;
+        letter-spacing: -0.02em !important;
+        background: linear-gradient(135deg, #00d4ff 0%, #0099cc 50%, #006699 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        padding-bottom: 0.25rem !important;
+    }
+
+    h2, h3 {
+        font-weight: 700 !important;
+        letter-spacing: -0.01em !important;
+        color: #e0e0e0 !important;
+    }
+
+    h4 {
+        font-weight: 600 !important;
+        color: #00d4ff !important;
+        text-transform: uppercase;
+        font-size: 0.9rem !important;
+        letter-spacing: 0.05em !important;
+    }
+
+    /* Subheader caption */
+    .main [data-testid="stCaptionContainer"] {
+        font-size: 1.1rem;
+        color: #888 !important;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+    }
+
+    /* Card-like containers for columns */
+    [data-testid="column"] > div > div > div > div {
+        background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+        border: 1px solid #0f3460;
+        border-radius: 12px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+
+    [data-testid="column"] > div > div > div > div:hover {
+        border-color: #00d4ff;
+        box-shadow: 0 0 20px rgba(0, 212, 255, 0.15);
+        transform: translateY(-2px);
+    }
+
+    /* Primary buttons */
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%) !important;
+        color: #0a0a0f !important;
+        border: none !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.02em !important;
+        padding: 0.6rem 1.5rem !important;
+        transition: all 0.3s ease !important;
+        text-transform: uppercase !important;
+        font-size: 0.85rem !important;
+    }
+
+    .stButton > button[kind="primary"]:hover {
+        background: linear-gradient(135deg, #00e5ff 0%, #00b8d4 100%) !important;
+        box-shadow: 0 4px 20px rgba(0, 212, 255, 0.4) !important;
+        transform: translateY(-1px) !important;
+    }
+
+    /* Secondary buttons */
+    .stButton > button[kind="secondary"],
+    .stButton > button:not([kind="primary"]) {
+        background: transparent !important;
+        color: #00d4ff !important;
+        border: 2px solid #0f3460 !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.02em !important;
+        padding: 0.6rem 1.5rem !important;
+        transition: all 0.3s ease !important;
+        text-transform: uppercase !important;
+        font-size: 0.85rem !important;
+    }
+
+    .stButton > button[kind="secondary"]:hover,
+    .stButton > button:not([kind="primary"]):hover {
+        border-color: #00d4ff !important;
+        background: rgba(0, 212, 255, 0.1) !important;
+    }
+
+    /* Disabled buttons */
+    .stButton > button:disabled {
+        opacity: 0.4 !important;
+        cursor: not-allowed !important;
+    }
+
+    /* Text inputs and text areas */
+    .stTextInput > div > div > input,
+    .stTextArea > div > div > textarea {
+        background-color: #0a0a0f !important;
+        border: 2px solid #1a1a2e !important;
+        border-radius: 8px !important;
+        color: #e0e0e0 !important;
+        font-family: 'Inter', monospace !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .stTextInput > div > div > input:focus,
+    .stTextArea > div > div > textarea:focus {
+        border-color: #00d4ff !important;
+        box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.3) !important;
+    }
+
+    /* Placeholder text */
+    .stTextInput > div > div > input::placeholder,
+    .stTextArea > div > div > textarea::placeholder {
+        color: #444 !important;
+    }
+
+    /* Radio buttons */
+    .stRadio > div {
+        background: transparent !important;
+    }
+
+    .stRadio > div > label {
+        color: #888 !important;
+        font-weight: 500 !important;
+    }
+
+    [data-testid="stRadio"] > div > div > label > div:first-child {
+        background-color: #1a1a2e !important;
+        border-color: #0f3460 !important;
+    }
+
+    [data-testid="stRadio"] > div > div > label[data-checked="true"] > div:first-child {
+        background-color: #00d4ff !important;
+        border-color: #00d4ff !important;
+    }
+
+    /* Checkboxes */
+    .stCheckbox > label > div:first-child {
+        background-color: #1a1a2e !important;
+        border-color: #0f3460 !important;
+        border-radius: 4px !important;
+    }
+
+    .stCheckbox > label > div[data-checked="true"]:first-child {
+        background-color: #00d4ff !important;
+        border-color: #00d4ff !important;
+    }
+
+    /* Info boxes */
+    .stAlert > div {
+        border-radius: 8px !important;
+        border: none !important;
+    }
+
+    /* Success alert */
+    [data-testid="stAlert"][data-type="success"] {
+        background: linear-gradient(135deg, rgba(0, 200, 150, 0.15) 0%, rgba(0, 150, 100, 0.1) 100%) !important;
+        border-left: 4px solid #00c896 !important;
+    }
+
+    /* Info alert */
+    [data-testid="stAlert"][data-type="info"] {
+        background: linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(0, 150, 200, 0.1) 100%) !important;
+        border-left: 4px solid #00d4ff !important;
+    }
+
+    /* Warning alert */
+    [data-testid="stAlert"][data-type="warning"] {
+        background: linear-gradient(135deg, rgba(255, 180, 0, 0.15) 0%, rgba(200, 140, 0, 0.1) 100%) !important;
+        border-left: 4px solid #ffb400 !important;
+    }
+
+    /* Error alert */
+    [data-testid="stAlert"][data-type="error"] {
+        background: linear-gradient(135deg, rgba(255, 80, 80, 0.15) 0%, rgba(200, 50, 50, 0.1) 100%) !important;
+        border-left: 4px solid #ff5050 !important;
+    }
+
+    /* Progress bar */
+    .stProgress > div > div {
+        background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%) !important;
+        border-radius: 4px !important;
+    }
+
+    .stProgress > div {
+        background-color: #1a1a2e !important;
+        border-radius: 4px !important;
+    }
+
+    /* Expander */
+    .streamlit-expanderHeader {
+        background-color: #1a1a2e !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        color: #00d4ff !important;
+    }
+
+    .streamlit-expanderContent {
+        background-color: #0f0f1a !important;
+        border: 1px solid #1a1a2e !important;
+        border-top: none !important;
+        border-radius: 0 0 8px 8px !important;
+    }
+
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #0a0a0f 0%, #0f0f1a 100%) !important;
+        border-right: 1px solid #1a1a2e !important;
+    }
+
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3 {
+        color: #e0e0e0 !important;
+    }
+
+    [data-testid="stSidebar"] .stButton > button[kind="primary"] {
+        width: 100% !important;
+    }
+
+    /* Divider */
+    hr {
+        border-color: #1a1a2e !important;
+        margin: 1.5rem 0 !important;
+    }
+
+    /* Code blocks */
+    .stCodeBlock {
+        background-color: #0a0a0f !important;
+        border: 1px solid #1a1a2e !important;
+        border-radius: 8px !important;
+    }
+
+    code {
+        color: #00d4ff !important;
+    }
+
+    /* Tables */
+    .stTable {
+        background-color: #0f0f1a !important;
+    }
+
+    table {
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+    }
+
+    th {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
+        color: #00d4ff !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        font-size: 0.8rem !important;
+        letter-spacing: 0.05em !important;
+        padding: 0.75rem 1rem !important;
+        border-bottom: 2px solid #0f3460 !important;
+    }
+
+    td {
+        background-color: #0f0f1a !important;
+        padding: 0.75rem 1rem !important;
+        border-bottom: 1px solid #1a1a2e !important;
+    }
+
+    /* Markdown tables */
+    .stMarkdown table {
+        width: 100% !important;
+        margin: 1rem 0 !important;
+    }
+
+    .stMarkdown th, .stMarkdown td {
+        text-align: left !important;
+    }
+
+    /* Caption text */
+    .stCaption, small {
+        color: #666 !important;
+        font-size: 0.85rem !important;
+    }
+
+    /* Spinner */
+    .stSpinner > div {
+        border-color: #00d4ff transparent transparent transparent !important;
+    }
+
+    /* Score badges - custom styling */
+    .score-excellent {
+        background: linear-gradient(135deg, #00c896 0%, #00a67d 100%);
+        color: #0a0a0f;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 700;
+        display: inline-block;
+    }
+
+    .score-good {
+        background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+        color: #0a0a0f;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 700;
+        display: inline-block;
+    }
+
+    .score-practice {
+        background: linear-gradient(135deg, #ffb400 0%, #cc9000 100%);
+        color: #0a0a0f;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 700;
+        display: inline-block;
+    }
+
+    /* Hide Streamlit branding */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+
+    /* Metric cards styling */
+    [data-testid="metric-container"] {
+        background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+        border: 1px solid #0f3460;
+        border-radius: 12px;
+        padding: 1rem;
+    }
+
+    [data-testid="metric-container"] label {
+        color: #00d4ff !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        font-size: 0.75rem !important;
+        letter-spacing: 0.05em !important;
+    }
+
+    [data-testid="metric-container"] [data-testid="stMetricValue"] {
+        color: #e0e0e0 !important;
+        font-weight: 700 !important;
+    }
+</style>
+"""
+
+
+# =============================================================================
 # Main Application
 # =============================================================================
 
@@ -893,11 +1266,15 @@ def main():
     st.set_page_config(
         page_title="Prompt Dojo",
         page_icon="🥋",
-        layout="wide"
+        layout="wide",
+        initial_sidebar_state="expanded"
     )
 
-    st.title("Prompt Dojo")
-    st.caption("Master the Art of Prompt Engineering")
+    # Inject custom CSS
+    st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+
+    st.title("PROMPT DOJO")
+    st.caption("MASTER THE ART OF PROMPT ENGINEERING")
 
     init_session_state()
     render_sidebar()
