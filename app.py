@@ -868,11 +868,54 @@ def render_module3():
         except:
             pass
 
-        st.markdown(result)
+        # Try to extract the improved prompt for separate display with copy button
+        improved_prompt = None
+        display_result = result
+        try:
+            if "## Improved Version" in result:
+                parts = result.split("## Improved Version")
+                before_improved = parts[0]
+                after_improved = parts[1]
+
+                # Extract the code block content
+                if "```" in after_improved:
+                    code_start = after_improved.find("```") + 3
+                    # Skip language identifier if present (e.g., ```text)
+                    newline_after_backticks = after_improved.find("\n", code_start)
+                    code_start = newline_after_backticks + 1
+                    code_end = after_improved.find("```", code_start)
+                    if code_end > code_start:
+                        improved_prompt = after_improved[code_start:code_end].strip()
+                        # Get content after the code block for "Why This Works Better"
+                        after_code = after_improved[code_end + 3:]
+                        display_result = before_improved
+        except:
+            pass
+
+        # Display the main analysis (without improved version section)
+        st.markdown(display_result)
+
+        # Display improved prompt with copy functionality
+        if improved_prompt:
+            st.markdown("---")
+            st.markdown("#### IMPROVED VERSION")
+            st.text_area(
+                "Improved prompt (select all and copy):",
+                value=improved_prompt,
+                height=200,
+                key="improved_prompt_display",
+                label_visibility="collapsed"
+            )
+
+            # Why this works better section
+            if "## Why This Works Better" in result:
+                why_section = result.split("## Why This Works Better")[1].split("---")[0].strip()
+                st.markdown("#### WHY THIS WORKS BETTER")
+                st.markdown(why_section)
 
         # Helpful tip at the bottom
         st.divider()
-        st.caption("PRO TIP: Copy the improved version and analyze it again to verify the score increase.")
+        st.caption("PRO TIP: Copy the improved version above and analyze it again to verify the score increase.")
 
 
 def render_lesson_selection():
@@ -1306,6 +1349,9 @@ CUSTOM_CSS = """
         color: #e0e0e0 !important;
         font-family: 'Inter', monospace !important;
         transition: all 0.3s ease !important;
+        white-space: pre-wrap !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
     }
 
     .stTextInput > div > div > input:focus,
@@ -1318,6 +1364,18 @@ CUSTOM_CSS = """
     .stTextInput > div > div > input::placeholder,
     .stTextArea > div > div > textarea::placeholder {
         color: #444 !important;
+    }
+
+    /* Improved prompt display area - read-only styling */
+    .stTextArea[data-testid="stTextArea"] textarea[disabled],
+    .stTextArea textarea:read-only {
+        background-color: #1a1a2e !important;
+        border: 1px solid #0f3460 !important;
+        color: #e0e0e0 !important;
+        cursor: text !important;
+        white-space: pre-wrap !important;
+        word-wrap: break-word !important;
+        line-height: 1.5 !important;
     }
 
     /* Radio buttons */
