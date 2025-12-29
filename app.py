@@ -1002,9 +1002,29 @@ CUSTOM_CSS = """
     /* Import sharp, modern font */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-    /* Global font and background */
+    /* FORCE DARK MODE - Override any light theme settings */
+    :root {
+        color-scheme: dark !important;
+    }
+
     html, body, [class*="css"] {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: #0a0a0f !important;
+        color: #e0e0e0 !important;
+    }
+
+    /* Force dark on main app container */
+    .stApp, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
+        background-color: #0a0a0f !important;
+    }
+
+    .main, [data-testid="stMain"] {
+        background-color: #0a0a0f !important;
+    }
+
+    /* Force dark on all text elements */
+    p, span, div, label {
+        color: #e0e0e0 !important;
     }
 
     /* Main container styling */
@@ -1012,6 +1032,7 @@ CUSTOM_CSS = """
         padding-top: 2rem;
         padding-bottom: 2rem;
         max-width: 1200px;
+        background-color: #0a0a0f !important;
     }
 
     /* Header styling */
@@ -1301,34 +1322,44 @@ CUSTOM_CSS = """
         border-color: #00d4ff !important;
     }
 
-    /* Info boxes */
-    .stAlert > div {
+    /* Info boxes - force dark backgrounds */
+    .stAlert, .stAlert > div, [data-testid="stAlert"] {
         border-radius: 8px !important;
         border: none !important;
+        background-color: #1a1a2e !important;
     }
 
     /* Success alert */
-    [data-testid="stAlert"][data-type="success"] {
-        background: linear-gradient(135deg, rgba(0, 200, 150, 0.15) 0%, rgba(0, 150, 100, 0.1) 100%) !important;
+    [data-testid="stAlert"]:has([data-testid="stAlertContentSuccess"]),
+    .stAlert:has(.stSuccess) {
+        background: linear-gradient(135deg, rgba(0, 200, 150, 0.2) 0%, rgba(0, 150, 100, 0.15) 100%) !important;
         border-left: 4px solid #00c896 !important;
     }
 
     /* Info alert */
-    [data-testid="stAlert"][data-type="info"] {
-        background: linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(0, 150, 200, 0.1) 100%) !important;
+    [data-testid="stAlert"]:has([data-testid="stAlertContentInfo"]),
+    .stAlert:has(.stInfo) {
+        background: linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(0, 150, 200, 0.15) 100%) !important;
         border-left: 4px solid #00d4ff !important;
     }
 
     /* Warning alert */
-    [data-testid="stAlert"][data-type="warning"] {
-        background: linear-gradient(135deg, rgba(255, 180, 0, 0.15) 0%, rgba(200, 140, 0, 0.1) 100%) !important;
+    [data-testid="stAlert"]:has([data-testid="stAlertContentWarning"]),
+    .stAlert:has(.stWarning) {
+        background: linear-gradient(135deg, rgba(255, 180, 0, 0.2) 0%, rgba(200, 140, 0, 0.15) 100%) !important;
         border-left: 4px solid #ffb400 !important;
     }
 
     /* Error alert */
-    [data-testid="stAlert"][data-type="error"] {
-        background: linear-gradient(135deg, rgba(255, 80, 80, 0.15) 0%, rgba(200, 50, 50, 0.1) 100%) !important;
+    [data-testid="stAlert"]:has([data-testid="stAlertContentError"]),
+    .stAlert:has(.stError) {
+        background: linear-gradient(135deg, rgba(255, 80, 80, 0.2) 0%, rgba(200, 50, 50, 0.15) 100%) !important;
         border-left: 4px solid #ff5050 !important;
+    }
+
+    /* Alert text colors */
+    [data-testid="stAlert"] p, [data-testid="stAlert"] span {
+        color: #e0e0e0 !important;
     }
 
     /* Progress bar */
