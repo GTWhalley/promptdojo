@@ -9,6 +9,7 @@ import json
 import random
 import openai
 import google.generativeai as genai
+import anthropic
 
 
 # =============================================================================
@@ -274,6 +275,15 @@ def call_llm(prompt: str, system_prompt: str = None) -> str:
                 max_tokens=1500
             )
             return response.choices[0].message.content
+        elif st.session_state.api_provider == "Claude":
+            client = anthropic.Anthropic(api_key=st.session_state.api_key)
+            message = client.messages.create(
+                model="claude-3-haiku-20240307",
+                max_tokens=1500,
+                system=system_prompt if system_prompt else "",
+                messages=[{"role": "user", "content": prompt}]
+            )
+            return message.content[0].text
         else:  # Gemini
             genai.configure(api_key=st.session_state.api_key)
             model_name = st.session_state.get("gemini_model", "models/gemini-1.5-flash")
@@ -295,21 +305,29 @@ def test_api_connection(api_key: str, provider: str) -> tuple[bool, str]:
                 messages=[{"role": "user", "content": "Say 'OK'"}],
                 max_tokens=5
             )
-            return True, "Connection successful!"
+            return True, "Connected to OpenAI"
+        elif provider == "Claude":
+            client = anthropic.Anthropic(api_key=api_key)
+            message = client.messages.create(
+                model="claude-3-haiku-20240307",
+                max_tokens=10,
+                messages=[{"role": "user", "content": "Say 'OK'"}]
+            )
+            return True, "Connected to Claude"
         else:  # Gemini
             genai.configure(api_key=api_key)
             available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
             if not available_models:
-                return False, "No compatible Gemini models found for this API key."
+                return False, "No compatible Gemini models found."
             model_name = next((m for m in available_models if 'flash' in m.lower()), available_models[0])
             model = genai.GenerativeModel(model_name)
             response = model.generate_content("Say 'OK'")
             st.session_state.gemini_model = model_name
-            return True, f"Connection successful! Using {model_name}"
+            return True, "Connected to Gemini"
     except openai.AuthenticationError:
         return False, "Invalid OpenAI API key."
-    except openai.APIError as e:
-        return False, f"OpenAI API error: {str(e)}"
+    except anthropic.AuthenticationError:
+        return False, "Invalid Claude API key."
     except Exception as e:
         return False, f"Connection failed: {str(e)}"
 
@@ -427,20 +445,60 @@ def reset_quiz():
 
 
 # =============================================================================
+# Constants for API Providers
+# =============================================================================
+
+API_PROVIDERS = {
+    "OpenAI": {
+        "name": "OpenAI",
+        "url": "https://platform.openai.com/api-keys",
+        "icon": "🟢"
+    },
+    "Gemini": {
+        "name": "Google Gemini",
+        "url": "https://aistudio.google.com/app/apikey",
+        "icon": "🔵"
+    },
+    "Claude": {
+        "name": "Anthropic Claude",
+        "url": "https://console.anthropic.com/settings/keys",
+        "icon": "🟠"
+    }
+}
+
+
+# =============================================================================
 # UI Components
 # =============================================================================
 
 def render_sidebar():
     """Render the settings sidebar."""
     with st.sidebar:
-        st.markdown("### SETTINGS")
+        # API Provider Selection
+        st.markdown("#### SELECT PROVIDER")
+
+        provider_options = list(API_PROVIDERS.keys())
+        current_index = provider_options.index(st.session_state.api_provider) if st.session_state.api_provider in provider_options else 0
 
         provider = st.radio(
-            "Select API Provider:",
-            ["OpenAI", "Gemini"],
-            index=0 if st.session_state.api_provider == "OpenAI" else 1,
-            disabled=st.session_state.demo_mode
+            "API Provider",
+            provider_options,
+            index=current_index,
+            disabled=st.session_state.demo_mode,
+            label_visibility="collapsed",
+            format_func=lambda x: f"{API_PROVIDERS[x]['icon']} {API_PROVIDERS[x]['name']}"
         )
+
+        # Get API Key button
+        provider_info = API_PROVIDERS[provider]
+        st.link_button(
+            f"GET {provider.upper()} API KEY →",
+            provider_info["url"],
+            use_container_width=True
+        )
+
+        st.divider()
+
         # If provider changed, invalidate the API connection (different key needed)
         if provider != st.session_state.api_provider:
             st.session_state.api_provider = provider
@@ -820,33 +878,46 @@ def render_module3():
 def render_lesson_selection():
     """Render the lesson selection screen."""
     st.markdown("### SELECT YOUR TRAINING MODE")
-    st.write("")
+    st.markdown("---")
 
-    col1, col2, col3 = st.columns(3)
+    # Training modes in a clean 3-column grid
+    col1, col2, col3 = st.columns(3, gap="large")
 
     with col1:
-        st.markdown("#### COMPARE")
-        st.markdown("**Spot the difference.** Analyze two prompts side-by-side and identify which one will get better results.")
-        st.caption("DIFFICULTY: BEGINNER")
-        st.write("")
+        st.markdown("""
+        <div class="mode-card">
+            <div class="mode-icon">🔍</div>
+            <div class="mode-title">COMPARE</div>
+            <div class="mode-desc">Spot the difference. Analyze two prompts side-by-side and identify which one will get better results.</div>
+            <div class="mode-difficulty beginner">BEGINNER</div>
+        </div>
+        """, unsafe_allow_html=True)
         if st.button("START TRAINING", type="primary", use_container_width=True, key="select_compare"):
             st.session_state.lesson_selected = "compare"
             st.rerun()
 
     with col2:
-        st.markdown("#### CHALLENGE")
-        st.markdown("**Prove yourself.** Write prompts for real-world scenarios and get graded by AI.")
-        st.caption("DIFFICULTY: INTERMEDIATE")
-        st.write("")
+        st.markdown("""
+        <div class="mode-card">
+            <div class="mode-icon">⚔️</div>
+            <div class="mode-title">CHALLENGE</div>
+            <div class="mode-desc">Prove yourself. Write prompts for real-world scenarios and get graded by AI.</div>
+            <div class="mode-difficulty intermediate">INTERMEDIATE</div>
+        </div>
+        """, unsafe_allow_html=True)
         if st.button("ACCEPT CHALLENGE", type="primary", use_container_width=True, key="select_challenge"):
             st.session_state.lesson_selected = "challenge"
             st.rerun()
 
     with col3:
-        st.markdown("#### ANALYZE")
-        st.markdown("**Test before you deploy.** Paste any prompt and get a detailed breakdown before using it.")
-        st.caption("DIFFICULTY: ALL LEVELS")
-        st.write("")
+        st.markdown("""
+        <div class="mode-card">
+            <div class="mode-icon">📊</div>
+            <div class="mode-title">ANALYZE</div>
+            <div class="mode-desc">Test before you deploy. Paste any prompt and get a detailed breakdown before using it.</div>
+            <div class="mode-difficulty all-levels">ALL LEVELS</div>
+        </div>
+        """, unsafe_allow_html=True)
         if st.button("ANALYZE PROMPT", type="primary", use_container_width=True, key="select_grade"):
             st.session_state.lesson_selected = "grade"
             st.rerun()
@@ -856,26 +927,56 @@ def render_main_content():
     """Render the main content area with tabs."""
     if not st.session_state.api_validated:
         st.warning("Connect your API to begin training.")
+
+        # Welcome section with structured layout
+        st.markdown("### LEVEL UP YOUR PROMPT GAME")
+        st.markdown("Stop getting mediocre AI responses. Master the craft of prompt engineering.")
+        st.markdown("---")
+
+        # Feature overview in columns
+        col1, col2, col3 = st.columns(3, gap="large")
+
+        with col1:
+            st.markdown("""
+            <div class="feature-box">
+                <div class="feature-icon">🔍</div>
+                <div class="feature-title">COMPARE</div>
+                <div class="feature-desc">Train your eye to spot the difference between good and bad prompts</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with col2:
+            st.markdown("""
+            <div class="feature-box">
+                <div class="feature-icon">⚔️</div>
+                <div class="feature-title">CHALLENGE</div>
+                <div class="feature-desc">Write prompts under pressure and get scored on your performance</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with col3:
+            st.markdown("""
+            <div class="feature-box">
+                <div class="feature-icon">📊</div>
+                <div class="feature-title">ANALYZE</div>
+                <div class="feature-desc">Test any prompt before you use it and get actionable improvements</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("---")
+
+        # Quick start guide
         st.markdown("""
-        ### LEVEL UP YOUR PROMPT GAME
-
-        Stop getting mediocre AI responses. Master the craft of prompt engineering through:
-
-        **COMPARE** — Train your eye to spot the difference between good and bad prompts
-
-        **CHALLENGE** — Write prompts under pressure and get scored on your performance
-
-        **ANALYZE** — Test any prompt before you use it and get actionable improvements
-
-        ---
-
-        **QUICK START:**
-        1. Select your API provider in the sidebar
-        2. Enter your API key
-        3. Hit "Test Connection"
-
-        *No API key? Enable Demo Mode to try it out.*
-        """)
+        <div class="quick-start">
+            <div class="quick-start-title">QUICK START</div>
+            <div class="quick-start-steps">
+                <span class="step">1</span> Select your API provider in the sidebar
+                <span class="step">2</span> Enter your API key
+                <span class="step">3</span> Hit "Test Connection"
+            </div>
+            <div class="quick-start-note">No API key? Enable Demo Mode to try it out.</div>
+        </div>
+        """, unsafe_allow_html=True)
         return
 
     # Show lesson selection if not yet chosen
@@ -946,20 +1047,156 @@ CUSTOM_CSS = """
         letter-spacing: 0.02em;
     }
 
-    /* Card-like containers for columns */
-    [data-testid="column"] > div > div > div > div {
+    /* Mode selection cards */
+    .mode-card {
         background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
         border: 1px solid #0f3460;
         border-radius: 12px;
         padding: 1.5rem;
+        text-align: center;
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
         transition: all 0.3s ease;
-        height: 100%;
+        margin-bottom: 1rem;
     }
 
-    [data-testid="column"] > div > div > div > div:hover {
+    .mode-card:hover {
+        border-color: #00d4ff;
+        box-shadow: 0 0 25px rgba(0, 212, 255, 0.2);
+        transform: translateY(-3px);
+    }
+
+    .mode-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .mode-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #00d4ff;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.75rem;
+    }
+
+    .mode-desc {
+        font-size: 0.9rem;
+        color: #a0a0a0;
+        line-height: 1.5;
+        flex-grow: 1;
+        margin-bottom: 1rem;
+    }
+
+    .mode-difficulty {
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        padding: 0.35rem 0.75rem;
+        border-radius: 4px;
+        display: inline-block;
+    }
+
+    .mode-difficulty.beginner {
+        background: rgba(0, 200, 150, 0.2);
+        color: #00c896;
+        border: 1px solid rgba(0, 200, 150, 0.3);
+    }
+
+    .mode-difficulty.intermediate {
+        background: rgba(255, 180, 0, 0.2);
+        color: #ffb400;
+        border: 1px solid rgba(255, 180, 0, 0.3);
+    }
+
+    .mode-difficulty.all-levels {
+        background: rgba(0, 212, 255, 0.2);
+        color: #00d4ff;
+        border: 1px solid rgba(0, 212, 255, 0.3);
+    }
+
+    /* Feature boxes for welcome screen */
+    .feature-box {
+        background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+        border: 1px solid #0f3460;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        min-height: 150px;
+        transition: all 0.3s ease;
+    }
+
+    .feature-box:hover {
         border-color: #00d4ff;
         box-shadow: 0 0 20px rgba(0, 212, 255, 0.15);
-        transform: translateY(-2px);
+    }
+
+    .feature-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .feature-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #00d4ff;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.5rem;
+    }
+
+    .feature-desc {
+        font-size: 0.85rem;
+        color: #888;
+        line-height: 1.4;
+    }
+
+    /* Quick start section */
+    .quick-start {
+        background: linear-gradient(145deg, #0f0f1a 0%, #1a1a2e 100%);
+        border: 1px solid #0f3460;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        margin-top: 1rem;
+    }
+
+    .quick-start-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #00d4ff;
+        letter-spacing: 0.1em;
+        margin-bottom: 1rem;
+    }
+
+    .quick-start-steps {
+        font-size: 0.9rem;
+        color: #a0a0a0;
+        margin-bottom: 1rem;
+    }
+
+    .quick-start-steps .step {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        background: #00d4ff;
+        color: #0a0a0f;
+        border-radius: 50%;
+        font-weight: 700;
+        font-size: 0.75rem;
+        margin: 0 0.5rem 0 1rem;
+    }
+
+    .quick-start-steps .step:first-child {
+        margin-left: 0;
+    }
+
+    .quick-start-note {
+        font-size: 0.8rem;
+        color: #666;
+        font-style: italic;
     }
 
     /* Primary buttons */
@@ -1134,6 +1371,27 @@ CUSTOM_CSS = """
 
     [data-testid="stSidebar"] .stButton > button[kind="primary"] {
         width: 100% !important;
+    }
+
+    /* Link buttons in sidebar */
+    [data-testid="stSidebar"] a[data-testid="stBaseLinkButton-secondary"] {
+        background: transparent !important;
+        color: #00d4ff !important;
+        border: 1px solid #0f3460 !important;
+        border-radius: 6px !important;
+        font-weight: 600 !important;
+        font-size: 0.75rem !important;
+        letter-spacing: 0.03em !important;
+        padding: 0.5rem 0.75rem !important;
+        transition: all 0.3s ease !important;
+        text-decoration: none !important;
+        display: block !important;
+        text-align: center !important;
+    }
+
+    [data-testid="stSidebar"] a[data-testid="stBaseLinkButton-secondary"]:hover {
+        border-color: #00d4ff !important;
+        background: rgba(0, 212, 255, 0.1) !important;
     }
 
     /* Divider */
