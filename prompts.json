@@ -1,0 +1,142 @@
+[
+  {
+    "scenario": "You want the AI to summarize a long article for you.",
+    "option_a": "Summarize this.",
+    "option_b": "Summarize the following article in 3 bullet points, focusing on the key findings and actionable insights.",
+    "correct": "B",
+    "explanation": "Option B is superior because it specifies the format (3 bullet points), the focus areas (key findings and actionable insights), and sets clear expectations for the output structure. Option A is too vague and could result in any length or format of summary."
+  },
+  {
+    "scenario": "You need the AI to write a professional email declining a meeting invitation.",
+    "option_a": "Write an email saying I can't come to the meeting.",
+    "option_b": "Write a professional email politely declining a meeting invitation for Tuesday at 2pm. Express appreciation for being invited, briefly mention a scheduling conflict, and offer to receive meeting notes afterward. Keep the tone warm but professional.",
+    "correct": "B",
+    "explanation": "Option B provides specific context (Tuesday 2pm), defines the tone (warm but professional), includes required elements (appreciation, reason, alternative), and gives clear structure. Option A lacks detail and could produce an abrupt or inappropriate response."
+  },
+  {
+    "scenario": "You want to generate a Python function that validates email addresses.",
+    "option_a": "Write a Python function to check emails.",
+    "option_b": "Write a Python function called `validate_email(email: str) -> bool` that checks if an email address is valid. Use regex pattern matching. Include docstring with examples. Handle edge cases like empty strings and missing @ symbols.",
+    "correct": "B",
+    "explanation": "Option B specifies the function signature, implementation approach (regex), documentation requirements (docstring with examples), and edge cases to handle. This level of detail ensures consistent, production-ready code rather than a minimal implementation."
+  },
+  {
+    "scenario": "You want the AI to explain a complex concept to you.",
+    "option_a": "Explain quantum computing.",
+    "option_b": "Explain quantum computing to someone with a basic understanding of classical computers. Use 2-3 analogies from everyday life. Avoid jargon, and if technical terms are necessary, define them. Keep the explanation under 300 words.",
+    "correct": "B",
+    "explanation": "Option B defines the audience's knowledge level, requests specific teaching techniques (analogies), sets constraints on jargon usage, and specifies length. This ensures an appropriately targeted explanation rather than a potentially too technical or too basic response."
+  },
+  {
+    "scenario": "You need to extract specific information from a block of text.",
+    "option_a": "What information is in this text?",
+    "option_b": "Extract the following from the text below: 1) All person names mentioned, 2) Any dates or time references, 3) Monetary amounts if any. Format the output as a JSON object with keys 'names', 'dates', and 'amounts', each containing an array.",
+    "correct": "B",
+    "explanation": "Option B specifies exactly what to extract (names, dates, amounts), defines the output format (JSON with specific structure), and leaves no ambiguity. Option A would result in an unstructured, potentially incomplete response."
+  },
+  {
+    "scenario": "You want feedback on a piece of writing you've done.",
+    "option_a": "Is this good? [text]",
+    "option_b": "Review the following blog post introduction for: 1) Hook effectiveness - does it grab attention? 2) Clarity - is the main topic clear within the first two sentences? 3) Flow - does it read smoothly? Provide specific suggestions for improvement in each area.",
+    "correct": "B",
+    "explanation": "Option B establishes specific evaluation criteria (hook, clarity, flow), requests actionable feedback (specific suggestions), and focuses the review on particular aspects. 'Is this good?' is subjective and would yield vague, unhelpful feedback."
+  },
+  {
+    "scenario": "You want the AI to help brainstorm ideas for a mobile app.",
+    "option_a": "Give me app ideas.",
+    "option_b": "Brainstorm 5 mobile app ideas for busy professionals aged 25-40. Each idea should solve a daily productivity pain point. For each idea, provide: 1) App name, 2) Core problem it solves, 3) Key feature that differentiates it, 4) Monetization approach.",
+    "correct": "B",
+    "explanation": "Option B defines the target audience, constrains the number of ideas (5), specifies the problem domain (productivity), and structures the output with specific components. This generates actionable, focused ideas rather than random suggestions."
+  },
+  {
+    "scenario": "You need the AI to translate text while maintaining a specific tone.",
+    "option_a": "Translate this to Spanish.",
+    "option_b": "Translate the following marketing copy to Spanish (Latin American). Maintain the enthusiastic, casual tone of the original. Adapt any idioms or cultural references to resonate with a Mexican audience. Flag any phrases that don't translate well directly.",
+    "correct": "B",
+    "explanation": "Option B specifies the Spanish variant (Latin American), preserves tone requirements (enthusiastic, casual), requests cultural adaptation (Mexican audience), and asks for transparency about translation challenges. This ensures culturally appropriate, tone-consistent output."
+  },
+  {
+    "scenario": "You want to create a workout plan.",
+    "option_a": "Make me a workout plan.",
+    "option_b": "Create a 4-week beginner workout plan for someone with access to dumbbells and a pull-up bar only. Goal: build overall strength. Include 3 sessions per week, 45 minutes each. List exercises with sets, reps, and rest periods. Include a warm-up routine.",
+    "correct": "B",
+    "explanation": "Option B specifies equipment constraints, fitness level (beginner), goal (strength), duration (4 weeks), frequency (3x/week), session length (45 min), and required details (sets, reps, rest, warm-up). This creates a usable, personalized plan."
+  },
+  {
+    "scenario": "You want the AI to debug your code.",
+    "option_a": "Why doesn't this work? [code]",
+    "option_b": "Debug the following Python code that should sort a list of dictionaries by the 'date' key. Current behavior: throws TypeError. Expected behavior: returns list sorted oldest to newest. Python version: 3.9. Include explanation of the bug and corrected code.",
+    "correct": "B",
+    "explanation": "Option B describes expected vs actual behavior, specifies the error type, provides context (Python version), and requests both explanation and fix. This gives the AI the information needed to diagnose accurately rather than guess at the issue."
+  },
+  {
+    "scenario": "You want the AI to write a product description.",
+    "option_a": "Write a description for my product.",
+    "option_b": "Write a 150-word product description for a stainless steel water bottle targeting eco-conscious millennials. Highlight: 24-hour temperature retention, BPA-free materials, lifetime warranty. Tone: modern, slightly playful. Include a compelling opening hook and end with a soft call-to-action.",
+    "correct": "B",
+    "explanation": "Option B provides product details, target audience, key selling points to highlight, word count, tone guidance, and structural requirements (hook + CTA). This produces marketing-ready copy aligned with brand voice and customer segment."
+  },
+  {
+    "scenario": "You need to analyze data from a spreadsheet.",
+    "option_a": "Look at this data and tell me what you see.",
+    "option_b": "Analyze this sales data CSV and identify: 1) Top 3 performing products by revenue, 2) Month-over-month growth trends, 3) Any seasonal patterns, 4) Anomalies or outliers worth investigating. Present findings in a brief executive summary followed by detailed breakdown.",
+    "correct": "B",
+    "explanation": "Option B specifies exact analyses needed (top products, trends, patterns, anomalies) and output format (executive summary + details). This ensures comprehensive, actionable business insights rather than random observations."
+  },
+  {
+    "scenario": "You want creative writing help with a story opening.",
+    "option_a": "Write the beginning of a story.",
+    "option_b": "Write the opening paragraph (100-150 words) of a mystery novel set in 1920s Chicago. Introduce the protagonist, a jazz singer who moonlights as a private investigator. Use atmospheric, noir-style prose. Hook the reader with an immediate sense of danger or intrigue.",
+    "correct": "B",
+    "explanation": "Option B defines genre (mystery), setting (1920s Chicago), character (jazz singer/PI), style (noir), length (100-150 words), and narrative goal (hook with danger/intrigue). This produces targeted, genre-appropriate creative writing."
+  },
+  {
+    "scenario": "You want to learn a new skill step by step.",
+    "option_a": "Teach me guitar.",
+    "option_b": "Create a structured 30-day beginner guitar learning plan. I have an acoustic guitar and can practice 20 minutes daily. Start from absolute zero. Each day should have: 1) Specific skill to learn, 2) Exercise to practice, 3) Song snippet to apply the skill. Focus on building toward playing simple songs.",
+    "correct": "B",
+    "explanation": "Option B specifies timeframe (30 days), equipment (acoustic), daily time (20 min), starting level (zero), daily structure (skill/exercise/song), and goal (simple songs). This creates a realistic, actionable learning path."
+  },
+  {
+    "scenario": "You need help writing a cover letter.",
+    "option_a": "Write a cover letter for me.",
+    "option_b": "Write a cover letter for a Senior Software Engineer position at a fintech startup. Highlight 5 years of Python experience, leadership of a team of 3, and a project that reduced API latency by 40%. Tone: confident but not arrogant, enthusiastic about the startup environment. One page maximum.",
+    "correct": "B",
+    "explanation": "Option B provides role details, company type, specific achievements to highlight (quantified), tone guidance, and length constraint. This produces a tailored, compelling cover letter rather than generic boilerplate."
+  },
+  {
+    "scenario": "You want the AI to compare two options for a decision.",
+    "option_a": "Should I choose A or B?",
+    "option_b": "Compare AWS Lambda vs. Google Cloud Functions for my use case: a REST API handling 10,000 requests/day, needing Python 3.9, with occasional 30-second processing tasks. Compare: 1) Pricing at this scale, 2) Cold start performance, 3) Integration with PostgreSQL, 4) Ease of CI/CD setup. Recommend one with justification.",
+    "correct": "B",
+    "explanation": "Option B provides specific use case details (traffic, language, task duration), defines comparison criteria (pricing, performance, integration, CI/CD), and requests a justified recommendation. This enables an informed, contextual comparison."
+  },
+  {
+    "scenario": "You want to create a recipe based on available ingredients.",
+    "option_a": "What can I make with chicken?",
+    "option_b": "Suggest a dinner recipe using: chicken breast, garlic, lemon, spinach, and parmesan (ingredients I have). Cooking time under 30 minutes. Skill level: intermediate. Include exact measurements, step-by-step instructions, and any optional additions that would elevate the dish.",
+    "correct": "B",
+    "explanation": "Option B lists exact available ingredients, sets time constraint (30 min), indicates skill level, and specifies output format (measurements, steps, enhancements). This produces a practical, achievable recipe tailored to what's on hand."
+  },
+  {
+    "scenario": "You need the AI to roleplay as a character for practice.",
+    "option_a": "Pretend you're a customer.",
+    "option_b": "Roleplay as a frustrated customer calling about a delayed online order. You ordered a birthday gift 2 weeks ago, it was supposed to arrive yesterday, and the tracking hasn't updated in 5 days. Be moderately upset but not abusive. I'll practice my customer service de-escalation skills. Stay in character until I say 'end roleplay'.",
+    "correct": "B",
+    "explanation": "Option B establishes the scenario details (delayed order, birthday gift), emotional state (frustrated but reasonable), purpose (de-escalation practice), and exit condition (end roleplay). This creates a realistic, bounded training scenario."
+  },
+  {
+    "scenario": "You want the AI to proofread your writing.",
+    "option_a": "Check this for errors.",
+    "option_b": "Proofread this academic essay for: 1) Grammar and punctuation errors, 2) Awkward phrasing or unclear sentences, 3) Consistency in American English spelling, 4) Proper citation format (APA 7th edition). Mark each correction with [ORIGINAL] → [CORRECTED] and briefly explain why.",
+    "correct": "B",
+    "explanation": "Option B specifies what to check (grammar, clarity, spelling consistency, citations), the style guide (APA 7th), the format for corrections, and requests explanations. This provides comprehensive, educational proofreading rather than silent edits."
+  },
+  {
+    "scenario": "You want to generate test cases for a function.",
+    "option_a": "Write tests for this function.",
+    "option_b": "Write pytest test cases for the `calculate_shipping_cost(weight, distance, express)` function. Include: 1) Happy path tests for standard and express shipping, 2) Edge cases (zero weight, maximum distance), 3) Invalid input handling (negative values, wrong types), 4) Boundary value tests. Use descriptive test names and include assertions with expected values.",
+    "correct": "B",
+    "explanation": "Option B specifies the testing framework (pytest), function signature, test categories (happy path, edge cases, invalid input, boundaries), and output requirements (descriptive names, assertions). This produces comprehensive, well-organized test coverage."
+  }
+]
